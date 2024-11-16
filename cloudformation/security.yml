@@ -26,11 +26,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIP: !Ref MyIP
+          CidrIp: !Ref MyIP
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIP: 0.0.0.0/0
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub EC2secGroup-${NameBase}
@@ -62,7 +62,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIP: 0.0.0.0/0
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub ALBsecGroup-${NameBase}

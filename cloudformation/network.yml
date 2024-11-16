@@ -34,7 +34,9 @@ Resources:
   subnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: "ap-northeast-1a"
+      AvailabilityZone: !Select         #
+        - 0                             # <= Correct!
+        - Fn::GetAZs: !Ref AWS::Region  #
       CidrBlock: 10.1.1.0/24
       VpcId: !Ref VPC
       MapPublicIpOnLaunch: true
@@ -60,7 +62,9 @@ Resources:
   subnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: "ap-northeast-1a"
+      AvailabilityZone: !Select         #
+        - 0                             # <= Correct!
+        - Fn::GetAZs: !Ref AWS::Region  #
       CidrBlock: 10.1.2.0/24
       VpcId: !Ref VPC
       MapPublicIpOnLaunch: false
@@ -86,7 +90,9 @@ Resources:
   subnetC:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: "ap-northeast-1c"
+      AvailabilityZone: !Select         #
+        - 1                             # <= Correct!
+        - Fn::GetAZs: !Ref AWS::Region  #
       CidrBlock: 10.1.3.0/24
       VpcId: !Ref VPC
       MapPublicIpOnLaunch: true
@@ -104,7 +110,9 @@ Resources:
   subnetD:
     Type: AWS::EC2::Subnet
     Properties:
-      AvailabilityZone: "ap-northeast-1c"
+      AvailabilityZone: !Select         #
+        - 1                             # <= Correct!
+        - Fn::GetAZs: !Ref AWS::Region  #
       CidrBlock: 10.1.4.0/24
       VpcId: !Ref VPC
       MapPublicIpOnLaunch: false

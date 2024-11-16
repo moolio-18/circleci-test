@@ -13,7 +13,7 @@ Parameters:
     Default: Practice#4  
 
   ImageId:
-    Type: String
+    Type: AWS::EC2::Image::Id
     Default: ami-0e2612a08262410c8
 
   RDSMasterUsername:
@@ -23,13 +23,14 @@ Parameters:
     MaxLength: 16
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
 
-  RDSMasterUserPassword:
-    NoEcho: true
-    Description: "RDS Master User Password"
+  #RDSMasterUserPassword:
+  #  NoEcho: true
+  #  Description: "RDS Master User Password"
     #最初は文字からスタートすること
-    Type: String
-    MinLength: 12
-    AllowedPattern: "[a-zA-Z0-9]*" 
+  #  Type: String
+  #  MinLength: 4
+  #  MaxLength: 128
+  #  AllowedPattern: "[a-zA-Z0-9]*" 
   
   HealthCheck: 
     Description: HealthCheckPath for ALB
@@ -63,6 +64,18 @@ Resources:
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
           sudo yum install nginx
           sudo amazon-linux-extras install nginx1
+
+#          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+#          source ~/.bashrc
+#          nvm install v17.9.1
+#          npm install -g yarn
+#          yarn set version 1.22.19
+#          sudo su ec2-user
+#          gpg --keyserver keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+#          \curl -sSL https://get.rvm.io | bash
+#          echo "source $HOME/.rvm/scripts/rvm" >> ~/.bash_profile
+#          source .bash_profile
+#          rvm install 3.2.3
       Tags:
         - Key: Name
           Value: !Sub EC2-${NameBase}
@@ -80,6 +93,16 @@ Resources:
         - Key: Name
           Value: !Sub rdssubnetgroup-${NameBase}
 
+  RDSSecret:
+    Type: "AWS::SecretsManager::Secret"
+    Properties:
+      Description: "This is a Secrets Manager secret for an RDS DB instance"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: "password"
+        PasswordLength: 16
+        ExcludeCharacters: "\"@'%$#&().,{_?<≠^>[:;`+*!]}=~|¥/\\"
+
   rdsDBInstance:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -87,14 +110,16 @@ Resources:
       DBInstanceClass: db.t4g.micro
       AllowMajorVersionUpgrade: false
       AutoMinorVersionUpgrade: false
-      AvailabilityZone: ap-northeast-1c
+      AvailabilityZone:  !Select         #
+        - 1                             # <= Correct!
+        - Fn::GetAZs: !Ref AWS::Region  #
       VPCSecurityGroups:
         - !ImportValue RDSsecGroup
       DBSubnetGroupName: !Ref rdsDBSubnetGroup 
       Engine: mysql
       EngineVersion: 8.0.35
       MasterUsername: !Ref RDSMasterUsername
-      MasterUserPassword: !Ref RDSMasterUserPassword
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref RDSSecret, ':SecretString:password}}' ]]
       PubliclyAccessible: false
       StorageType: gp3
       Tags:
